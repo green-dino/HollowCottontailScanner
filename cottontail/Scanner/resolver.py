@@ -1,6 +1,6 @@
 import socket
-from logger import ErrorReporter
 import logging
+from logger import ErrorReporter
 
 def resolve_target_ip(tgt_host):
     """Resolve the target host to an IP address."""
@@ -8,6 +8,6 @@ def resolve_target_ip(tgt_host):
         tgt_ip = socket.gethostbyname(tgt_host)
         logging.info(f'Scan Results for: {tgt_ip}')
         return tgt_ip
-    except socket.gaierror:
-        ErrorReporter.report_error(f"Cannot resolve '{tgt_host}': Unknown host")
+    except socket.gaierror as e:
+        ErrorReporter.report_error(f"Cannot resolve '{tgt_host}': Unknown host. Error: {e}")
         return None

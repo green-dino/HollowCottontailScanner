@@ -1,4 +1,5 @@
 import socket
+import logging
 from threading import Semaphore
 from concurrent.futures import ThreadPoolExecutor
 from logger import ErrorReporter
