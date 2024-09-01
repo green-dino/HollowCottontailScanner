@@ -3,7 +3,7 @@ import logging
 from threading import Semaphore
 from concurrent.futures import ThreadPoolExecutor
 from logger import ErrorReporter
-from utils import parse_ports
+from scan_utils import parse_ports
 
 # Constants
 TIMEOUT = 1
