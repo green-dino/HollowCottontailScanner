@@ -18,7 +18,7 @@ setup(
     description='A framework for Scanning',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/yourusername/project_name',
+    url='https://github.com/green-dino/HollowCottontailScanner ',
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
