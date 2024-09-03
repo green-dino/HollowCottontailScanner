@@ -2,6 +2,7 @@ import networkx as nx
 from scapy.all import rdpcap, IP
 import numpy as np
 import logging
+import matplotlib.pyplot as plt
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -59,7 +60,19 @@ class PCAPHandler:
     def calculate_positions(G):
         """Calculate positions for the nodes in the graph."""
         pos = nx.spring_layout(G, k=0.15, iterations=20)
-        return PCAPHandler._validate_and_convert_positions(pos)
+        pos = PCAPHandler._validate_and_convert_positions(pos)
+        
+        # Log positions for debugging
+        for node, position in pos.items():
+            logging.info(f"Node {node} position: {position}")
+        
+        # Ensure all nodes have positions
+        for node in G.nodes():
+            if node not in pos:
+                logging.warning(f"Node {node} does not have a position. Assigning default position.")
+                pos[node] = (0, 0)  # Assign a default position or calculate based on existing nodes
+        
+        return pos
 
     @staticmethod
     def _validate_and_convert_positions(pos):
@@ -89,3 +102,17 @@ class PCAPHandler:
             if 'ip' not in G.nodes[node] or 'packet_count' not in G.nodes[node]:
                 raise ValueError(f"Node {node} does not have required attributes 'ip' and 'packet_count'.")
         logging.info(f"Total number of nodes in the graph: {len(G.nodes())}")
+
+    @staticmethod
+    def plot_graph(G, pos):
+        """Plot the graph using matplotlib."""
+        try:
+            plt.figure(figsize=(12, 8))
+            nx.draw_networkx(G, pos, with_labels=True, node_size=500, node_color="skyblue", font_size=10, font_weight="bold", edge_color="gray", arrows=True, arrowstyle='-|>', arrowsize=20)
+            plt.title("Network Graph from PCAP")
+            plt.axis('off')
+            plt.tight_layout()
+            plt.show()
+        except Exception as e:
+            logging.error(f"Failed to plot graph: {e}")
+            raise

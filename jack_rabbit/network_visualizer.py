@@ -11,17 +11,25 @@ class NetworkVisualizer:
     @staticmethod
     def create_plot():
         """Create and return a Bokeh plot with the desired dimensions and title."""
-        plot = Plot(width=1920, height=1080, x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
-        plot.title.text = "Network Map"
-        return plot
+        try:
+            plot = Plot(width=1920, height=1080, x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
+            plot.title.text = "Network Map"
+            return plot
+        except Exception as e:
+            logging.error(f"Failed to create plot: {e}")
+            raise
 
     @staticmethod
     def create_graph_renderer(G, pos):
         """Create and return a graph renderer from the networkx graph and positions."""
-        graph_renderer = from_networkx(G, pos, scale=1, center=(0, 0))
-        graph_renderer.node_renderer.glyph = Circle(radius=0.05, fill_color=Spectral4[0])
-        graph_renderer.edge_renderer.glyph = MultiLine(line_alpha=0.8, line_width=1)
-        return graph_renderer
+        try:
+            graph_renderer = from_networkx(G, pos, scale=1, center=(0, 0))
+            graph_renderer.node_renderer.glyph = Circle(radius=0.05, fill_color=Spectral4[0])
+            graph_renderer.edge_renderer.glyph = MultiLine(line_alpha=0.8, line_width=1)
+            return graph_renderer
+        except Exception as e:
+            logging.error(f"Failed to create graph renderer: {e}")
+            raise
 
     @staticmethod
     def create_labels(G, pos):
@@ -46,24 +54,41 @@ class NetworkVisualizer:
             except KeyError as e:
                 logging.error(f"KeyError for node {node}: {e}")
 
-        source = ColumnDataSource(data=data)
-        labels = LabelSet(x='x', y='y', text='label', source=source,
-                          text_font_size='10pt', x_offset=5, y_offset=5)
-        return labels
+        try:
+            source = ColumnDataSource(data=data)
+            labels = LabelSet(x='x', y='y', text='label', source=source,
+                              text_font_size='10pt', x_offset=5, y_offset=5)
+            return labels
+        except Exception as e:
+            logging.error(f"Failed to create labels: {e}")
+            raise
 
-    @staticmethod
     def visualize_graph(G, pos):
         """Visualize the network graph using Bokeh."""
-        plot = NetworkVisualizer.create_plot()
-        graph_renderer = NetworkVisualizer.create_graph_renderer(G, pos)
-        plot.renderers.append(graph_renderer)
+        try:
+            # Validate node attributes
+            for node in G.nodes():
+                if 'ip' not in G.nodes[node] or 'packet_count' not in G.nodes[node]:
+                    raise ValueError(f"Node {node} does not have required attributes 'ip' and 'packet_count'.")
 
-        plot.add_tools(HoverTool(tooltips=[("IP", "@ip"), ("Packet Count", "@packet_count")]), BoxZoomTool(), ResetTool())
+            # Validate node positions
+            for node in G.nodes():
+                if node not in pos:
+                    raise ValueError(f"Node {node} does not have a position.")
 
-        labels = NetworkVisualizer.create_labels(G, pos)
-        plot.add_layout(labels)
+            plot = NetworkVisualizer.create_plot()
+            graph_renderer = NetworkVisualizer.create_graph_renderer(G, pos)
+            plot.renderers.append(graph_renderer)
 
-        # Log the total number of nodes
-        logging.info(f"Total number of nodes in the graph: {len(G.nodes())}")
+            plot.add_tools(HoverTool(tooltips=[("IP", "@ip"), ("Packet Count", "@packet_count")]), BoxZoomTool(), ResetTool())
 
-        return plot
+            labels = NetworkVisualizer.create_labels(G, pos)
+            plot.add_layout(labels)
+
+            # Log the total number of nodes
+            logging.info(f"Total number of nodes in the graph: {len(G.nodes())}")
+
+            return plot
+        except Exception as e:
+            logging.error(f"Failed to visualize graph: {e}")
+            raise
