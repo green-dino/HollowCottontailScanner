@@ -3,6 +3,7 @@ from tkinter import filedialog, messagebox
 from pcap_handler import PCAPHandler
 from network_visualizer import NetworkVisualizer
 from bokeh.io import output_file, show
+import logging
 
 class PCAPAnalyzerGUI:
     def __init__(self, master):
@@ -41,6 +42,7 @@ class PCAPAnalyzerGUI:
         try:
             pcap = PCAPHandler.load_pcap(self.pcap_path)
             G = PCAPHandler.extract_edges(pcap)
+            PCAPHandler.validate_graph(G)  # Validation step before relabeling
             G_relabeled = PCAPHandler.relabel_nodes(G)
             pos = PCAPHandler.calculate_positions(G_relabeled)
 
@@ -49,10 +51,10 @@ class PCAPAnalyzerGUI:
             plot = NetworkVisualizer.visualize_graph(G_relabeled, pos)
             output_file("network.html")
             show(plot)
-            
             self.create_save_button(plot)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to generate network map: {e}")
+            logging.error(f"Failed to generate network map: {e}")
 
     def validate_positions(self, pos):
         if not isinstance(pos, dict):

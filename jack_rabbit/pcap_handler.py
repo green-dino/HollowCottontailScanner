@@ -19,22 +19,31 @@ class PCAPHandler:
     def extract_edges(pcap):
         """Extract edges from the PCAP file and create a directed graph with attributes."""
         G = nx.DiGraph()
+        
         for packet in pcap:
             if IP in packet:
-                src_ip = packet[IP].src
-                dst_ip = packet[IP].dst
-                if G.has_edge(src_ip, dst_ip):
+                try:
+                    src_ip = str(packet[IP].src)
+                    dst_ip = str(packet[IP].dst)
+                    
+                    # Initialize node attributes if they don't exist
+                    if src_ip not in G:
+                        G.add_node(src_ip, ip=src_ip, packet_count=0)
+                    if dst_ip not in G:
+                        G.add_node(dst_ip, ip=dst_ip, packet_count=0)
+                    
+                    # Create edge if it doesn't exist
+                    if not G.has_edge(src_ip, dst_ip):
+                        G.add_edge(src_ip, dst_ip, packet_count=0)
+                    
+                    # Increment counts
                     G[src_ip][dst_ip]['packet_count'] += 1
-                else:
-                    G.add_edge(src_ip, dst_ip, packet_count=1)
-                if 'packet_count' in G.nodes[src_ip]:
                     G.nodes[src_ip]['packet_count'] += 1
-                else:
-                    G.nodes[src_ip]['packet_count'] = 1
-                if 'packet_count' in G.nodes[dst_ip]:
                     G.nodes[dst_ip]['packet_count'] += 1
-                else:
-                    G.nodes[dst_ip]['packet_count'] = 1
+                    
+                except Exception as e:
+                    logging.error(f"Error processing packet: {e}")
+        
         return G
 
     @staticmethod
@@ -42,8 +51,8 @@ class PCAPHandler:
         """Relabel nodes in the graph with integer labels and store original IP addresses."""
         mapping = {node: i for i, node in enumerate(G.nodes())}
         G_relabeled = nx.relabel_nodes(G, mapping)
-        for node, original_node in mapping.items():
-            G_relabeled.nodes[node]['ip'] = original_node
+        for new_node, original_node in mapping.items():
+            G_relabeled.nodes[new_node]['ip'] = original_node
         return G_relabeled
 
     @staticmethod
@@ -79,18 +88,4 @@ class PCAPHandler:
         for node in G.nodes():
             if 'ip' not in G.nodes[node] or 'packet_count' not in G.nodes[node]:
                 raise ValueError(f"Node {node} does not have required attributes 'ip' and 'packet_count'.")
-
         logging.info(f"Total number of nodes in the graph: {len(G.nodes())}")
-
-# Example usage
-if __name__ == "__main__":
-    file_path = "example.pcap"
-    try:
-        pcap = PCAPHandler.load_pcap(file_path)
-        G = PCAPHandler.extract_edges(pcap)
-        PCAPHandler.validate_graph(G)
-        G_relabeled = PCAPHandler.relabel_nodes(G)
-        pos = PCAPHandler.calculate_positions(G_relabeled)
-        logging.info("Graph and positions successfully calculated.")
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
