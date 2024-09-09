@@ -52,6 +52,13 @@ class PCAPAnalyzerGUI:
             output_file("network.html")
             show(plot)
             self.create_save_button(plot)
+            
+            # Log graph statistics
+            total_nodes = len(G_relabeled.nodes())
+            total_edges = len(G_relabeled.edges())
+            max_packet_count = max(node['packet_count'] for node in G_relabeled.nodes.values())
+            logging.info(f"Total nodes: {total_nodes}, Total edges: {total_edges}, Max packet count: {max_packet_count}")
+
         except Exception as e:
             messagebox.showerror("Error", f"Failed to generate network map: {e}")
             logging.error(f"Failed to generate network map: {e}")

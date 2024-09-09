@@ -2,7 +2,6 @@ import networkx as nx
 from scapy.all import rdpcap, IP
 import numpy as np
 import logging
-import matplotlib.pyplot as plt
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -60,7 +59,6 @@ class PCAPHandler:
     def calculate_positions(G):
         """Calculate positions for the nodes in the graph."""
         pos = nx.spring_layout(G, k=0.15, iterations=20)
-        pos = PCAPHandler._validate_and_convert_positions(pos)
         
         # Log positions for debugging
         for node, position in pos.items():
@@ -69,31 +67,10 @@ class PCAPHandler:
         # Ensure all nodes have positions
         for node in G.nodes():
             if node not in pos:
-                logging.warning(f"Node {node} does not have a position. Assigning default position.")
-                pos[node] = (0, 0)  # Assign a default position or calculate based on existing nodes
+                logging.warning(f"Node {node} does not have a position. Assigning random position.")
+                pos[node] = (np.random.uniform(-1, 1), np.random.uniform(-1, 1))
         
         return pos
-
-    @staticmethod
-    def _validate_and_convert_positions(pos):
-        """Validate and convert positions to ensure they are tuples of length 2."""
-        if not isinstance(pos, dict):
-            raise TypeError("Position data is not a dictionary.")
-
-        for node, position in pos.items():
-            pos[node] = PCAPHandler._convert_position(position, node)
-
-        return pos
-
-    @staticmethod
-    def _convert_position(position, node):
-        """Convert position to a tuple of length 2."""
-        if isinstance(position, (list, tuple)) and len(position) == 2:
-            return tuple(position)
-        elif isinstance(position, np.ndarray) and position.shape == (2,):
-            return tuple(position)
-        else:
-            raise ValueError(f"Position for node {node} is not a valid tuple of length 2: {position}")
 
     @staticmethod
     def validate_graph(G):
