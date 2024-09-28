@@ -1,15 +1,17 @@
 import logging
+from urllib.parse import urlparse
 
 def parse_url(url):
-    if not url.startswith("http://"):
-        raise ValueError("URL must start with 'http://'")
+    parsed_url = urlparse(url)
     
-    parts = url.split('/')
-    if len(parts) < 3:
-        raise ValueError("Invalid URL format")
+    if parsed_url.scheme not in ('http', 'https'):
+        raise ValueError("URL must start with 'http://' or 'https://'")
     
-    host = parts[2]
-    path = '/' + '/'.join(parts[3:]) if len(parts) > 3 else '/'
+    if not parsed_url.netloc:
+        raise ValueError("Invalid URL format: Missing host")
     
-    logging.info(f"Parsed URL: host={host}, path={path}")
+    host = parsed_url.netloc
+    path = parsed_url.path if parsed_url.path else '/'
+    
+    logging.info(f"Parsed URL: scheme={parsed_url.scheme}, host={host}, path={path}")
     return host, path

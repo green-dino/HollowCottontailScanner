@@ -1,18 +1,14 @@
 from setuptools import setup, find_packages
 
+# Read the requirements from the requirements.txt file
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
 setup(
-    name='project_name',
+    name='HollowCottonTail',
     version='0.1',
     packages=find_packages(),
-    install_requires=[
-        'requests',
-        'flask',
-    ],
-    entry_points={
-        'console_scripts': [
-            'project_name=project_name.__main__:main',
-        ],
-    },
+    install_requires=requirements,
     author='Rye',
     author_email='rye@grcand.me',
     description='A framework for Scanning',
